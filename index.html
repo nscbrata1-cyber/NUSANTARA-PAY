@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NUSANTARA PAY V5</title>
+<style>
+body{margin:0;font-family:Arial;background:#eef4ff}
+.hidden{display:none}
+.screen{max-width:430px;margin:auto;background:#fff;min-height:100vh;padding-bottom:90px}
+.login{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh}
+input,button{padding:14px;border-radius:14px;border:1px solid #ddd;margin:6px;width:80%}
+.header{background:linear-gradient(135deg,#007bff,#62c3ff);padding:25px;color:#fff;border-radius:0 0 35px 35px}
+.balance{background:#fff;color:#111;padding:18px;border-radius:20px;margin-top:15px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:20px}
+.btn{background:#f4f7ff;border:none}
+.section{padding:20px}
+.card,.profile{background:#f5f7fc;padding:15px;border-radius:18px;margin-top:10px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:430px;width:100%;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:10px 0}
+.dark{background:#111;color:#fff}
+.dark .screen{background:#1e1e1e}
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="login">
+<h1>NUSANTARA PAY 🔐</h1>
+<p>Masukkan PIN (default: 123456)</p>
+<input id="pin" type="password" maxlength="6" placeholder="PIN 6 digit">
+<button onclick="login()">Masuk</button>
+</div>
+
+<div id="app" class="screen hidden">
+<div class="header">
+<h1>NUSANTARA PAY</h1>
+<div class="balance">
+<p>Saldo Anda</p>
+<h1 id="saldo">Rp1.250.000</h1>
+</div>
+</div>
+
+<div class="grid">
+<button class="btn" onclick="kirim()">💸<br>Kirim</button>
+<button class="btn" onclick="topup()">➕<br>Top Up</button>
+<button class="btn" onclick="qr()">📷<br>QR</button>
+<button class="btn" onclick="toggleDark()">🌙<br>Dark</button>
+</div>
+
+<div class="section">
+<h2>Profil</h2>
+<div class="profile">
+👤 <span id="nama">Dewa Putu</span><br>
+<button onclick="editNama()">Edit Nama</button>
+</div>
+
+<h2>Riwayat</h2>
+<div id="history"></div>
+</div>
+
+<div class="nav">
+<div>🏠 Home</div>
+<div>💳 Wallet</div>
+<div>🔔 Notif</div>
+<div>👤 Profil</div>
+</div>
+</div>
+
+<script>
+let saldo = Number(localStorage.getItem('saldo')) || 1250000;
+let riwayat = JSON.parse(localStorage.getItem('riwayat')) || [];
+let nama = localStorage.getItem('nama') || 'Dewa Putu';
+
+function rp(n){return 'Rp'+n.toLocaleString('id-ID')}
+
+function update(){
+ document.getElementById('saldo').innerText=rp(saldo);
+ document.getElementById('nama').innerText=nama;
+ let h=document.getElementById('history');
+ h.innerHTML='';
+ riwayat.slice().reverse().forEach(x=>{
+  h.innerHTML += `<div class='card'>${x}</div>`;
+ });
+ localStorage.setItem('saldo',saldo);
+ localStorage.setItem('riwayat',JSON.stringify(riwayat));
+ localStorage.setItem('nama',nama);
+}
+
+function login(){
+ let pin=document.getElementById('pin').value;
+ if(pin==='123456'){
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+ } else alert('PIN salah ❌');
+}
+
+function topup(){
+ let n=parseInt(prompt('Nominal top up'));
+ if(n){
+ saldo+=n;
+ riwayat.push('➕ Top Up '+rp(n));
+ update();
+ alert('Top Up berhasil 🔥');
+ }
+}
+
+function kirim(){
+ let to=prompt('Kirim ke siapa?');
+ let n=parseInt(prompt('Nominal'));
+ if(n && n<=saldo){
+ saldo-=n;
+ riwayat.push('💸 Transfer ke '+to+' - '+rp(n));
+ update();
+ alert('Transfer berhasil ✅');
+ } else alert('Saldo kurang ❌');
+}
+
+function qr(){alert('📷 QR PAY DEMO')}
+function toggleDark(){document.body.classList.toggle('dark')}
+function editNama(){
+ nama=prompt('Masukkan nama baru',nama)||nama;
+ update();
+}
+
+update();
+</script>
+</body>
+</html>
