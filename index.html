@@ -1,0 +1,238 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NUSANTARA PAY FULL</title>
+<style>
+body{font-family:Arial;background:#eef4ff;margin:0}
+.container{max-width:430px;margin:auto;background:#fff;min-height:100vh;padding:20px;box-sizing:border-box}
+.hidden{display:none}
+input,button{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:1px solid #ddd;box-sizing:border-box}
+button{background:#007bff;color:#fff;border:none}
+.card{background:#f4f7ff;padding:14px;border-radius:16px;margin:10px 0}
+.header{background:linear-gradient(135deg,#007bff,#66c8ff);padding:20px;color:#fff;border-radius:0 0 25px 25px}
+.small{font-size:12px;color:#666}
+</style>
+</head>
+<body>
+
+<div class="container" id="auth">
+<h1>NUSANTARA PAY</h1>
+<button onclick="showRegister()">📝 Daftar</button>
+<button onclick="showLogin()">🔑 Login</button>
+<button onclick="showAdmin()">👑 Admin</button>
+
+<div id="registerBox" class="hidden">
+<h2>Daftar</h2>
+<input id="rNama" placeholder="Nama">
+<input id="rKtp" placeholder="KTP">
+<input id="rAlamat" placeholder="Alamat">
+<input id="rHp" placeholder="HP">
+<input id="rPin" type="password" placeholder="PIN">
+<button onclick="register()">Daftar</button>
+</div>
+
+<div id="loginBox" class="hidden">
+<h2>Login</h2>
+<input id="lHp" placeholder="HP">
+<input id="lPin" type="password" placeholder="PIN">
+<button onclick="login()">Masuk</button>
+</div>
+
+<div id="adminBox" class="hidden">
+<h2>Admin Login</h2>
+<input id="aUser" placeholder="admin">
+<input id="aPin" type="password" placeholder="admin123">
+<button onclick="adminLogin()">Masuk Admin</button>
+</div>
+</div>
+
+<div class="container hidden" id="dash">
+<div class="header">
+<h2>NUSANTARA PAY</h2>
+<p id="halo"></p>
+<h1 id="saldo"></h1>
+</div>
+
+<div id="profil" class="card"></div>
+<div id="notif" class="card"></div>
+
+<button onclick="topup()">➕ Top Up</button>
+<button onclick="transfer()">💸 Kirim</button>
+<button onclick="logout()">🚪 Logout</button>
+
+<h3>Riwayat</h3>
+<div id="history"></div>
+</div>
+
+<div class="container hidden" id="adminPanel">
+<div class="header">
+<h2>👑 ADMIN PANEL</h2>
+<p>Total User: <span id="totalUser"></span></p>
+<p>Total Saldo: <span id="totalSaldo"></span></p>
+</div>
+
+<input id="search" placeholder="Cari user" onkeyup="renderUsers()">
+<div id="users"></div>
+<button onclick="logout()">🚪 Logout</button>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem('users')||'[]');
+let current = JSON.parse(localStorage.getItem('currentUser')||'null');
+
+users.forEach(u=>{
+ if(!u.accountNumber){
+   u.accountNumber='NP-'+Math.floor(Math.random()*999999);
+ }
+});
+
+function save(){
+ localStorage.setItem('users',JSON.stringify(users));
+}
+
+function now(){
+ return new Date().toLocaleString('id-ID');
+}
+
+function showRegister(){
+ registerBox.classList.remove('hidden');
+ loginBox.classList.add('hidden');
+ adminBox.classList.add('hidden');
+}
+function showLogin(){
+ loginBox.classList.remove('hidden');
+ registerBox.classList.add('hidden');
+ adminBox.classList.add('hidden');
+}
+function showAdmin(){
+ adminBox.classList.remove('hidden');
+ loginBox.classList.add('hidden');
+ registerBox.classList.add('hidden');
+}
+
+function register(){
+ let nama=rNama.value,ktp=rKtp.value,alamat=rAlamat.value,
+ hp=rHp.value,pin=rPin.value;
+
+ users.push({
+ nama,ktp,alamat,hp,pin,
+ saldo:1250000,
+ notif:'',
+ history:[],
+ accountNumber:'NP-'+Math.floor(Math.random()*999999)
+ });
+
+ save();
+ alert('Daftar berhasil');
+}
+
+function login(){
+ let hp=lHp.value,pin=lPin.value;
+ let u=users.find(x=>x.hp===hp&&x.pin===pin);
+
+ if(!u)return alert('Login gagal');
+
+ current=u;
+ localStorage.setItem('currentUser',JSON.stringify(current));
+ renderDash();
+}
+
+function renderDash(){
+ auth.classList.add('hidden');
+ dash.classList.remove('hidden');
+
+ halo.innerText='Halo, '+current.nama;
+ saldo.innerText='Rp'+current.saldo.toLocaleString('id-ID');
+
+ profil.innerHTML=
+ '👤 '+current.nama+'<br>'+
+ '💳 '+current.accountNumber+'<br>'+
+ '📱 '+current.hp+'<br>'+
+ '🏠 '+current.alamat;
+
+ notif.innerHTML=current.notif||'🔔 Tidak ada notif';
+
+ history.innerHTML='';
+ current.history.slice().reverse().forEach(h=>{
+   history.innerHTML+='<div class="card">'+h+'</div>';
+ });
+}
+
+function sync(){
+ let i=users.findIndex(x=>x.hp===current.hp);
+ users[i]=current;
+ save();
+ localStorage.setItem('currentUser',JSON.stringify(current));
+ renderDash();
+}
+
+function topup(){
+ let n=parseInt(prompt('Nominal'));
+ if(!n)return;
+ current.saldo+=n;
+ current.history.push('➕ Top Up Rp'+n.toLocaleString('id-ID')+'<br><span class=small>'+now()+'</span>');
+ sync();
+}
+
+function transfer(){
+ let tujuan=prompt('Nomor HP tujuan');
+ let nominal=parseInt(prompt('Nominal'));
+
+ let p=users.find(x=>x.hp===tujuan);
+
+ if(!p)return alert('User tidak ditemukan');
+ if(nominal>current.saldo)return alert('Saldo kurang');
+
+ current.saldo-=nominal;
+ p.saldo+=nominal;
+
+ let w=now();
+
+ current.history.push('💸 Transfer ke '+p.nama+' Rp'+nominal.toLocaleString('id-ID')+'<br>'+w);
+ p.history.push('💰 Diterima dari '+current.nama+' Rp'+nominal.toLocaleString('id-ID')+'<br>'+w);
+ p.notif='🔔 Transfer dari '+current.nama;
+
+ users[users.findIndex(x=>x.hp===p.hp)]=p;
+ sync();
+}
+
+function adminLogin(){
+ if(aUser.value==='admin'&&aPin.value==='admin123'){
+  auth.classList.add('hidden');
+  adminPanel.classList.remove('hidden');
+  renderUsers();
+ } else alert('Admin gagal');
+}
+
+function renderUsers(){
+ let key=(search.value||'').toLowerCase();
+
+ let filtered=users.filter(u=>
+ (u.nama||'').toLowerCase().includes(key)||
+ (u.hp||'').includes(key)
+ );
+
+ totalUser.innerText=users.length;
+ totalSaldo.innerText='Rp'+users.reduce((a,b)=>a+b.saldo,0).toLocaleString('id-ID');
+
+ users.innerHTML='';
+ filtered.forEach(u=>{
+ document.getElementById('users').innerHTML +=
+ '<div class=card>👤 '+u.nama+
+ '<br>💳 '+u.accountNumber+
+ '<br>📱 '+u.hp+
+ '<br>💰 Rp'+u.saldo.toLocaleString('id-ID')+'</div>';
+ });
+}
+
+function logout(){
+ localStorage.removeItem('currentUser');
+ location.reload();
+}
+
+if(current) renderDash();
+</script>
+</body>
+</html>
