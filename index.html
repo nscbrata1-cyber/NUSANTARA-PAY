@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NUSANTARA PAY V7</title>
+<style>
+body{font-family:Arial;background:#eef4ff;margin:0}
+.container{max-width:430px;margin:auto;background:#fff;min-height:100vh;padding:20px}
+.hidden{display:none}
+input,button{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:1px solid #ddd;box-sizing:border-box}
+button{background:#007bff;color:#fff;border:none}
+.card{background:#f4f7ff;padding:15px;border-radius:18px;margin:10px 0}
+.header{background:linear-gradient(135deg,#007bff,#65c7ff);color:#fff;padding:20px;border-radius:0 0 25px 25px}
+</style>
+</head>
+<body>
+
+<div class="container" id="auth">
+<h1>NUSANTARA PAY</h1>
+<button onclick="showRegister()">Daftar</button>
+<button onclick="showLogin()">Login</button>
+
+<div id="register" class="hidden">
+<h2>Daftar Akun</h2>
+<input id="regNama" placeholder="Nama Lengkap">
+<input id="regKtp" placeholder="NIK / KTP">
+<input id="regAlamat" placeholder="Alamat">
+<input id="regHp" placeholder="Nomor HP">
+<input id="regPin" type="password" placeholder="PIN 6 digit">
+<input id="regPin2" type="password" placeholder="Konfirmasi PIN">
+<button onclick="register()">Daftar</button>
+</div>
+
+<div id="login" class="hidden">
+<h2>Login</h2>
+<input id="loginHp" placeholder="Nomor HP">
+<input id="loginPin" type="password" placeholder="PIN">
+<button onclick="login()">Masuk</button>
+</div>
+</div>
+
+<div class="container hidden" id="dashboard">
+<div class="header">
+<h2>NUSANTARA PAY</h2>
+<p id="welcome"></p>
+<h1 id="saldo"></h1>
+</div>
+
+<div class="card" id="profil"></div>
+
+<button onclick="topup()">➕ Top Up</button>
+<button onclick="kirim()">💸 Kirim</button>
+<button onclick="logout()">🚪 Logout</button>
+
+<h3>Riwayat</h3>
+<div id="history"></div>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem('users')) || [];
+let current = JSON.parse(localStorage.getItem('currentUser'));
+
+function save(){
+ localStorage.setItem('users', JSON.stringify(users));
+}
+
+function showRegister(){
+ document.getElementById('register').classList.remove('hidden');
+ document.getElementById('login').classList.add('hidden');
+}
+function showLogin(){
+ document.getElementById('login').classList.remove('hidden');
+ document.getElementById('register').classList.add('hidden');
+}
+
+function register(){
+ const nama = regNama.value;
+ const ktp = regKtp.value;
+ const alamat = regAlamat.value;
+ const hp = regHp.value;
+ const pin = regPin.value;
+ const pin2 = regPin2.value;
+
+ if(pin !== pin2) return alert('PIN tidak sama');
+
+ if(users.find(u=>u.hp===hp))
+ return alert('Nomor HP sudah terdaftar');
+
+ users.push({
+  nama, ktp, alamat, hp, pin,
+  saldo:1250000,
+  history:[]
+ });
+
+ save();
+ alert('Daftar berhasil! Silakan login');
+ showLogin();
+}
+
+function login(){
+ const hp = loginHp.value;
+ const pin = loginPin.value;
+
+ const user = users.find(u=>u.hp===hp && u.pin===pin);
+ if(!user) return alert('Login gagal');
+
+ current = user;
+ localStorage.setItem('currentUser', JSON.stringify(user));
+ loadDashboard();
+}
+
+function loadDashboard(){
+ auth.classList.add('hidden');
+ dashboard.classList.remove('hidden');
+
+ welcome.innerText = 'Halo, ' + current.nama;
+ saldo.innerText = 'Rp' + current.saldo.toLocaleString('id-ID');
+
+ profil.innerHTML = `
+ 👤 ${current.nama}<br>
+ 🪪 ${current.ktp}<br>
+ 🏠 ${current.alamat}<br>
+ 📱 ${current.hp}
+ `;
+
+ history.innerHTML='';
+ current.history.slice().reverse().forEach(x=>{
+   history.innerHTML += `<div class='card'>${x}</div>`;
+ });
+}
+
+function updateUser(){
+ const index = users.findIndex(u=>u.hp===current.hp);
+ users[index]=current;
+ save();
+ localStorage.setItem('currentUser', JSON.stringify(current));
+ loadDashboard();
+}
+
+function topup(){
+ let n=parseInt(prompt('Nominal top up'));
+ if(n){
+ current.saldo += n;
+ current.history.push('➕ Top Up Rp'+n.toLocaleString('id-ID'));
+ updateUser();
+ }
+}
+
+function kirim(){
+ let tujuan=prompt('Nomor HP tujuan');
+ let nominal=parseInt(prompt('Nominal'));
+
+ const penerima=users.find(u=>u.hp===tujuan);
+ if(!penerima) return alert('Akun tujuan tidak ditemukan');
+ if(nominal>current.saldo) return alert('Saldo kurang');
+
+ current.saldo -= nominal;
+ penerima.saldo += nominal;
+
+ current.history.push('💸 Transfer ke '+tujuan+' Rp'+nominal.toLocaleString('id-ID'));
+ penerima.history.push('💰 Diterima dari '+current.hp+' Rp'+nominal.toLocaleString('id-ID'));
+
+ users[users.findIndex(u=>u.hp===penerima.hp)] = penerima;
+ updateUser();
+}
+
+function logout(){
+ localStorage.removeItem('currentUser');
+ location.reload();
+}
+
+if(current){ loadDashboard(); }
+</script>
+
+</body>
+</html>
