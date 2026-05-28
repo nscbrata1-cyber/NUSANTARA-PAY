@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NUSANTARA PAY</title>
+<style>
+body{margin:0;font-family:Arial;background:#eef4ff}
+.app{max-width:420px;margin:auto;background:#fff;min-height:100vh;padding-bottom:80px}
+.header{background:linear-gradient(135deg,#1185ff,#58b5ff);color:white;padding:24px;border-radius:0 0 30px 30px}
+.balance{background:#fff;color:#111;padding:15px;border-radius:20px;margin-top:15px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:20px}
+.btn{background:#f3f7ff;border:none;padding:14px;border-radius:18px}
+.section{padding:20px}
+.card{background:#f5f7fc;padding:14px;border-radius:18px;margin-top:10px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:420px;width:100%;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:10px 0}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+<h1>NUSANTARA PAY</h1>
+<p>Dompet Digital Nusantara</p>
+<div class="balance">
+<p>Saldo Anda</p>
+<h2>Rp1.250.000</h2>
+</div>
+</div>
+
+<div class="grid">
+<button class="btn" onclick="alert('Fitur Kirim Uang')">💸<br>Kirim</button>
+<button class="btn" onclick="alert('Top Up Demo')">➕<br>Top Up</button>
+<button class="btn" onclick="alert('QR Pay Demo')">📷<br>QR</button>
+<button class="btn" onclick="alert('Riwayat Demo')">📜<br>Riwayat</button>
+</div>
+
+<div class="section">
+<h3>Transaksi Terbaru</h3>
+<div class="card">+ Rp500.000 Top Up</div>
+<div class="card">- Rp50.000 Transfer</div>
+<div class="card">- Rp25.000 QR Payment</div>
+</div>
+
+<div class="nav">
+<div>🏠<br>Home</div>
+<div>💳<br>Wallet</div>
+<div>🔔<br>Notif</div>
+<div>👤<br>Profil</div>
+</div>
+</div>
+</body>
+</html>
